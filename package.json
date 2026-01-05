@@ -6,11 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:sms": "node scripts/seed-sms.mjs"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.6",
+    "@mui/material": "^7.3.6",
     "next": "16.1.1",
+    "ra-data-json-server": "^5.13.4",
     "react": "19.2.3",
+    "react-admin": "^5.13.4",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
