@@ -28,12 +28,14 @@ function verify(token: string | undefined): boolean {
 export function issueSession(): NextResponse {
   const token = sign('admin')
   const res = NextResponse.json({ ok: true })
+  const threeMonths = 3 * 30 * 24 * 60 * 60
   res.cookies.set({
     name: SESSION_COOKIE,
     value: token,
     httpOnly: true,
     sameSite: 'lax',
     path: '/',
+    maxAge: threeMonths,
   })
   return res
 }

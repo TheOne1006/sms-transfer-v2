@@ -1,6 +1,6 @@
 'use client'
 
-import { Admin, Resource, List, Datagrid, TextField, ShowGuesser, useRecordContext, FunctionField } from 'react-admin'
+import { Admin, Resource, List, Datagrid, TextField, useRecordContext, FunctionField } from 'react-admin'
 import jsonServerProvider from 'ra-data-json-server'
 import { IconButton, Tooltip } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
@@ -42,11 +42,11 @@ const CopyableTextField = ({ source }: { source: string }) => {
 }
 
 const authProvider = {
-  login: async ({ password }: { password: string }) => {
+  login: async ({ username, password }: { username: string; password: string }) => {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     })
     if (!res.ok) throw new Error('login failed')
     return Promise.resolve()
@@ -89,7 +89,7 @@ function MessagesList() {
 export default function AdminApp() {
   return (
     <Admin dataProvider={dataProvider} authProvider={authProvider}>
-      <Resource name="messages" list={MessagesList} show={ShowGuesser} />
+      <Resource name="messages" list={MessagesList} />
     </Admin>
   )
 }
