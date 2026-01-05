@@ -1,0 +1,14 @@
+services:
+  web:
+    build: .
+    container_name: sms-transfer
+    restart: always
+    ports:
+      - "3010:3000"
+    environment:
+      # 请根据实际情况修改以下环境变量
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=admin
+      - WEBHOOK_TOKEN=webhook_token
+      - SESSION_SECRET=change_me_to_a_long_random_string
+      # 如果有其他环境变量，请在此添加
