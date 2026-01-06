@@ -1,9 +1,13 @@
 'use client'
 
-import { Admin, Resource, List, Datagrid, TextField, useRecordContext, FunctionField } from 'react-admin'
+import { useState } from 'react'
+import { Admin, Resource, List, Datagrid, DatagridConfigurable, TextField, ShowGuesser, useRecordContext, FunctionField, TopToolbar, useListContext, SelectColumnsButton } from 'react-admin'
 import jsonServerProvider from 'ra-data-json-server'
-import { IconButton, Tooltip } from '@mui/material'
+import { IconButton, Tooltip, Button, Menu, MenuItem, Box, CircularProgress } from '@mui/material'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import AutorenewIcon from '@mui/icons-material/Autorenew'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import PullToRefresh from 'react-simple-pull-to-refresh'
 
 const dataProvider = jsonServerProvider('/api')
 
@@ -69,19 +73,93 @@ const authProvider = {
   getPermissions: async () => Promise.resolve(),
 }
 
-function MessagesList() {
+const AutoRefreshMenu = ({ interval, setInterval }: { interval: number; setInterval: (v: number) => void }) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const open = Boolean(anchorEl)
+  
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+  
+  const handleClose = (newInterval?: number) => {
+    setAnchorEl(null)
+    if (newInterval !== undefined) {
+      setInterval(newInterval)
+    }
+  }
+
   return (
-    <List exporter={false}>
-      <Datagrid rowClick="show" bulkActionButtons={false}>
-        <TextField source="to" sortable={false} />
-        <CopyableTextField source="code" />
-        <TextField source="content" sortable={false} />
-        <FunctionField
-          source="timestamp"
-          render={(record: any) => formatDate(record.timestamp)}
-          sortable={false}
-        />
-      </Datagrid>
+    <>
+      <span>自动刷新间隔</span>
+      <Button
+        color="primary"
+        onClick={handleClick}
+        startIcon={<AutorenewIcon />}
+        endIcon={<ArrowDropDownIcon />}
+        size="small"
+      >
+        {interval ? `${interval / 1000}s` : 'Off'}
+      </Button>
+      <Menu anchorEl={anchorEl} open={open} onClose={() => handleClose()}>
+        <MenuItem onClick={() => handleClose(0)}>Off</MenuItem>
+        <MenuItem onClick={() => handleClose(5000)}>5s</MenuItem>
+        <MenuItem onClick={() => handleClose(10000)}>10s</MenuItem>
+        <MenuItem onClick={() => handleClose(30000)}>30s</MenuItem>
+        <MenuItem onClick={() => handleClose(60000)}>60s</MenuItem>
+      </Menu>
+    </>
+  )
+}
+
+const MessagesListActions = ({ interval, setInterval }: { interval: number; setInterval: (v: number) => void }) => (
+  <TopToolbar>
+    <AutoRefreshMenu interval={interval} setInterval={setInterval} />
+    <SelectColumnsButton size="small" />
+  </TopToolbar>
+)
+
+const PullToRefreshWrapper = ({ children }: { children: React.ReactNode }) => {
+  const { refetch } = useListContext()
+  return (
+    <PullToRefresh
+      onRefresh={async () => refetch()}
+      pullingContent={
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      }
+      refreshingContent={
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={24} />
+        </Box>
+      }
+    >
+      <Box sx={{ minHeight: '80vh' }}>{children}</Box>
+    </PullToRefresh>
+  )
+}
+
+function MessagesList() {
+  const [interval, setInterval] = useState(10000)
+
+  return (
+    <List 
+      exporter={false} 
+      actions={<MessagesListActions interval={interval} setInterval={setInterval} />}
+      queryOptions={{ refetchInterval: interval }}
+    >
+      <PullToRefreshWrapper>
+        <DatagridConfigurable rowClick="show" bulkActionButtons={false}>
+          <TextField source="to" sortable={false} />
+          <CopyableTextField source="code" />
+          <TextField source="content" sortable={false} />
+          <FunctionField
+            source="timestamp"
+            render={(record: any) => formatDate(record.timestamp)}
+            sortable={false}
+          />
+        </DatagridConfigurable>
+      </PullToRefreshWrapper>
     </List>
   )
 }
